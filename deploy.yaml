@@ -35,7 +35,7 @@ spec:
       - envFrom:
         - configMapRef:
             name: agora-middleware
-        image: us-central1-docker.pkg.dev/vital-valor-396603/appcare/agora-middleware:4975a85a8242ca1d1cb8b203772fa3f56f47c63a
+        image: us-central1-docker.pkg.dev/vital-valor-396603/appcare/agora-middleware:latest
         name: gateway-rest
         resources:
           limits:
