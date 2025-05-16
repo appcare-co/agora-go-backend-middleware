@@ -43,6 +43,7 @@ func (s *CloudRecordingService) makeRequest(method, url string, body interface{}
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling request body into JSON: %v", err)
 		}
+		fmt.Println(bytes.NewBuffer(jsonBody))
 
 		// Create a request with a JSON body for non-GET methods.
 		req, err = http.NewRequest(method, url, bytes.NewBuffer(jsonBody))
@@ -58,13 +59,14 @@ func (s *CloudRecordingService) makeRequest(method, url string, body interface{}
 	}
 
 	// Set the 'Authorization' header for all requests.
+	fmt.Println("Authorization: " + s.basicAuth)
 	req.Header.Set("Authorization", s.basicAuth)
 
 	// Create and configure an HTTP client with a timeout.
 	client := &http.Client{Timeout: time.Second * 10}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error sending request: %v", err)
+		return nil, fmt.Errorf("------------------- error sending request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -76,7 +78,7 @@ func (s *CloudRecordingService) makeRequest(method, url string, body interface{}
 
 	// Check the HTTP response status code.
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(responseBody))
+		return nil, fmt.Errorf("------------ API request failed with status %d: %s", resp.StatusCode, string(responseBody))
 	}
 
 	return responseBody, nil

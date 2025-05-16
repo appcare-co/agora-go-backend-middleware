@@ -2,6 +2,7 @@ package cloud_recording_service
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -130,24 +131,27 @@ func (s *CloudRecordingService) StartRecording(c *gin.Context) {
 	if clientStartReq.RecordingConfig == nil {
 		// create default recording config
 		channelType := 0
-		streamTypes := 2
+		streamTypes := 0
+		audioProfile := 1
 		videoStreamType := 0
 		maxIdleTime := 120
-		subscribeUidGroup := 0
-		streamMode := "standard" // Default to "standard", ensure to modify based on your actual logic
+		// subscribeUidGroup := 0
+		streamMode := "original" // Default to "standard", ensure to modify based on your actual logic
 		subscribeAudioUids := []string{"#allstream#"}
-		subscribeVideoUids := []string{"#allstream#"}
+		// subscribeVideoUids := []string{"#allstream#"}
 		// create default recording config
 		clientStartReq.RecordingConfig = &RecordingConfig{
 			ChannelType:        channelType,
 			StreamTypes:        &streamTypes,
 			VideoStreamType:    &videoStreamType,
+			AudioProfile:       &audioProfile,
 			StreamMode:         &streamMode,
 			MaxIdleTime:        &maxIdleTime,
 			SubscribeAudioUids: &subscribeAudioUids,
-			SubscribeVideoUids: &subscribeVideoUids,
-			SubscribeUidGroup:  &subscribeUidGroup,
+			// SubscribeVideoUids: &subscribeVideoUids,
+			// SubscribeUidGroup: &subscribeUidGroup,
 		}
+
 	}
 
 	// Assemble recording client request
@@ -158,6 +162,9 @@ func (s *CloudRecordingService) StartRecording(c *gin.Context) {
 			Token:           token,
 			StorageConfig:   s.storageConfig,
 			RecordingConfig: *clientStartReq.RecordingConfig,
+			RecordingFileConfig: &RecordingFileConfig{
+				AVFileType: []string{"hls", "mp4"},
+			},
 		},
 		ExcludeResourceIds: clientStartReq.ExcludeResourceIds,
 	}
@@ -177,6 +184,7 @@ func (s *CloudRecordingService) StartRecording(c *gin.Context) {
 	log.Println("resourceID:", (resourceID))
 
 	// Build the full StartRecordingRequest
+	//
 	startReq := StartRecordingRequest{
 		Cname: clientStartReq.ChannelName,
 		Uid:   uid,
@@ -184,12 +192,16 @@ func (s *CloudRecordingService) StartRecording(c *gin.Context) {
 			Token:           token,
 			StorageConfig:   s.storageConfig,
 			RecordingConfig: *clientStartReq.RecordingConfig,
+			RecordingFileConfig: &RecordingFileConfig{
+				AVFileType: []string{"hls", "mp4"},
+			},
 		},
 	}
 
 	// Start Recording
 	response, err := s.HandleStartRecordingReq(startReq, resourceID, recordingMode)
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start recording: " + err.Error()})
 		return
 	}
