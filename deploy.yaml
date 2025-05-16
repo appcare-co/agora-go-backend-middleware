@@ -1,0 +1,73 @@
+apiVersion: v1
+data:
+  ENV: PROD
+kind: ConfigMap
+metadata:
+  name: agora-middleware
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gateway-rest
+  name: gateway-rest
+  namespace: default
+spec:
+  ports:
+  - name: tcp
+    port: 80
+    targetPort: 3000
+  selector:
+    app: agora-middleware
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: agora-middleware
+  name: agora-middleware
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agora-middleware
+  template:
+    metadata:
+      labels:
+        app: agora-middleware
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: agora-middleware
+        image: us-central1-docker.pkg.dev/vital-valor-396603/appcare/agora-middleware:4975a85a8242ca1d1cb8b203772fa3f56f47c63a
+        name: gateway-rest
+        resources:
+          limits:
+            cpu: 250m
+            ephemeral-storage: 500Mi
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            ephemeral-storage: 500Mi
+            memory: 512Mi
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  labels:
+    app: agora-middleware
+  name: agora-middleware
+  namespace: default
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`agora.appcare.com.co`)
+    priority: 20
+    services:
+    - name: agora-middleware
+      port: 80
