@@ -36,7 +36,7 @@ spec:
         - configMapRef:
             name: agora-middleware
         image: us-central1-docker.pkg.dev/vital-valor-396603/appcare/agora-middleware:latest
-        name: gateway-rest
+        name: agora-middleware
         resources:
           limits:
             cpu: 250m
